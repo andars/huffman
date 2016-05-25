@@ -1,0 +1,119 @@
+#include <stdio.h>
+
+#include "huffman.h"
+#include "vector.h"
+
+static int is_leaf(tree *node) {
+    return !(node->left || node->right);
+}
+
+static void dump_vector(vector* v) {
+    for (int i = 0; i<v->len; i++) {
+        tree* l = vector_get(v, i);
+        printf("sym: %c, freq: %d\n", l->symbol, l->weight);
+    }
+}
+
+tree* make_leaf(char sym, int freq) {
+    tree* leaf = malloc(sizeof(tree));
+    leaf->right = NULL;
+    leaf->left = NULL;
+    leaf->symbol = sym;
+    leaf->weight = freq;
+    return leaf;
+}
+
+static void set_insert(vector* v, tree* l) {
+    int i = 0;
+    printf("inserting %c\n", l->symbol);
+
+    if (v->len > 0) {
+        tree* n = vector_get(v, 0);
+
+        while (n->weight < l->weight) {
+            i++;
+            if (i >= v->len) break;
+            n = vector_get(v, i);
+        }
+
+    }
+
+    printf("sym: %c, weight: %d, len: %d, i: %d\n", l->symbol,
+            l->weight, v->len, i);
+
+    vector_insert(v, l, i);
+}
+
+tree* huffman_generate(char* alphabet, int freq[]) {
+    vector* v = vector_create();
+    while (*alphabet) {
+        set_insert(v, make_leaf(*alphabet++, *freq++)); 
+    } 
+
+    while (v->len > 1) {
+        //extract two trees with minimum weight
+        tree* t1 = vector_remove(v, 0);
+        tree* t2 = vector_remove(v, 0); 
+
+        tree* node = malloc(sizeof(tree));
+        node->left = t1;
+        node->right = t2;
+        node->symbol = t1->symbol;
+        node->weight = t1->weight + t2->weight;
+    
+        set_insert(v, node);
+        printf("\n");
+        dump_vector(v);
+    }
+
+    tree* final = vector_get(v, 0);
+    vector_destroy(v);
+    return final;
+}
+
+/*
+char encode_symbol(tree* t, char c) {
+    
+}
+
+void huffman_encode(tree* t, char* message) {
+    char c;
+    while (c = *message++) {
+        printf("%c", encode_symbol(t, c));
+    }
+}
+*/
+static void print_encoding(huffman* h, unsigned char c) {
+    int depth = h->code_len[c];
+    int enc = h->code[c];
+    for (int i = depth-1; i>=0; i--) {
+        printf("%u", (unsigned) (enc >> i) & 1); 
+    }
+    printf("\n");
+}
+
+void huffman_encoding(huffman* h, tree* t, int enc, int depth) {
+    if (is_leaf(t)) {
+        h->code[(unsigned) t->symbol] = enc;
+        h->code_len[(unsigned) t->symbol] = depth;
+        print_encoding(h, t->symbol);
+    } else {
+        huffman_encoding(h, t->left, enc << 1, depth+1);
+        huffman_encoding(h, t->right, (enc << 1) | 1, depth+1);
+    }
+}
+
+
+void huffman_encode(huffman* h, const char* message) {
+    char c;
+    printf("BEGIN MESSAGE\n");
+    while ((c = *message++)) {
+        print_encoding(h, c);
+    } 
+    printf("END MESSAGE\n");
+}
+
+void huffman_init(huffman* h, char* alphabet, int freq[]) {
+    h->t = huffman_generate(alphabet, freq);
+    huffman_encoding(h, h->t, 0, 0);
+}
