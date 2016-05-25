@@ -10,8 +10,6 @@ huffman: main
 
 main: $(OBJECTS)
 
-#huffman: LDFLAGS=$(wildcard build/*.o)
-
 test: $(OBJECTS) $(TESTS)
 	@bash ./tests/run.sh
 
