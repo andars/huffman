@@ -1,29 +1,32 @@
 CC=clang
-CFLAGS=-Wall -Wextra -pedantic -Werror
+CFLAGS=-Wall -Wextra -pedantic -Werror $(DEBUG) -I src/
 TESTS:=$(patsubst tests/%.c, build/test_%, $(wildcard tests/*.c))
 OBJECTS:=$(patsubst src/%.c, build/%.o, $(wildcard src/*.c))
 
 all: huffman
 
-run: huffman
-	@./huffman
+huffman: main
+	@./main
+
+main: $(OBJECTS)
+
+#huffman: LDFLAGS=$(wildcard build/*.o)
 
 test: $(OBJECTS) $(TESTS)
 	@bash ./tests/run.sh
 
-huffman: $(OBJECTS)
-	$(CC) $^ -o $@
+test: DEBUG=-DDEBUG
 
 build/%.o: src/%.c src/*.h build/
-	$(CC) $(CFLAGS) -c -I src/ $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 build/test_%: tests/%.c src/*.c src/*.h build/
-	$(CC) $(CFLAGS) -I src/ $< $(OBJECTS) -o $@
+	$(CC) $(CFLAGS) $< $(OBJECTS) -o $@
 
 build/:
 	mkdir $@
 
-clean : 
+clean:
 	rm -rf build/
 	rm -rf *.dSYM
 	rm -f tests/test.log
