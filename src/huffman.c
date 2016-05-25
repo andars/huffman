@@ -53,10 +53,13 @@ tree* make_leaf(char sym, int freq) {
     return leaf;
 }
 
-tree* huffman_generate(char* alphabet, int freq[]) {
+tree* huffman_generate(char* alphabet, int freq[], int count) {
     vector* v = vector_create();
-    while (*alphabet) {
-        set_insert(v, make_leaf(*alphabet++, *freq++)); 
+    for (int i = 0; i<count; i++) {
+        int f = freq[i];
+        if (f > 0) {
+            set_insert(v, make_leaf(alphabet[i], freq[i])); 
+        }
     } 
 
     while (v->len > 1) {
@@ -101,16 +104,17 @@ void huffman_encoding(huffman* h, tree* t, int enc, int depth) {
 }
 
 
-void huffman_encode(huffman* h, const char* message) {
+void huffman_encode(huffman* h, const char* message, int n) {
     char c;
     printf("BEGIN MESSAGE\n");
-    while ((c = *message++)) {
+    for (int i = 0; i<n; i++) {
+        c = message[i];
         print_encoding(h, c);
     } 
     printf("END MESSAGE\n");
 }
 
-void huffman_init(huffman* h, char* alphabet, int freq[]) {
-    h->t = huffman_generate(alphabet, freq);
+void huffman_init(huffman* h, char* alphabet, int freq[], int count) {
+    h->t = huffman_generate(alphabet, freq, count);
     huffman_encoding(h, h->t, 0, 0);
 }

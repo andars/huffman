@@ -16,7 +16,7 @@ typedef struct huffman {
     int code_len[MAX_SYMBOLS];
 } huffman;
 
-void huffman_init(huffman* h, char* alphabet, int freq[]);
-void huffman_encode(huffman* h, const char* message);
+void huffman_init(huffman* h, char* alphabet, int freq[], int count);
+void huffman_encode(huffman* h, const char* message, int n);
 
 #endif
