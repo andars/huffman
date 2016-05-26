@@ -44,7 +44,7 @@ static void set_insert(vector* v, tree* l) {
     vector_insert(v, l, i);
 }
 
-tree* make_leaf(char sym, int freq) {
+static tree* make_leaf(char sym, int freq) {
     tree* leaf = malloc(sizeof(tree));
     leaf->right = NULL;
     leaf->left = NULL;
@@ -53,14 +53,18 @@ tree* make_leaf(char sym, int freq) {
     return leaf;
 }
 
-tree* huffman_generate(char* alphabet, int freq[], int count) {
+static tree* huffman_generate(char* alphabet, int freq[], int nsym) {
     vector* v = vector_create();
-    for (int i = 0; i<count; i++) {
+    for (int i = 0; i<nsym; i++) {
         int f = freq[i];
         if (f > 0) {
             set_insert(v, make_leaf(alphabet[i], freq[i])); 
         }
     } 
+
+    if (v->len == 0) {
+        return NULL;
+    }
 
     while (v->len > 1) {
         //extract two trees with minimum weight
@@ -114,7 +118,10 @@ void huffman_encode(huffman* h, const char* message, int n) {
     printf("END MESSAGE\n");
 }
 
-void huffman_init(huffman* h, char* alphabet, int freq[], int count) {
-    h->t = huffman_generate(alphabet, freq, count);
+int huffman_init(huffman* h, char* alphabet, int freq[], int nsym) {
+    if (nsym < 1) return 0;
+    h->t = huffman_generate(alphabet, freq, nsym);
+    if (!h->t) return 0;
     huffman_encoding(h, h->t, 0, 0);
+    return 1;
 }
